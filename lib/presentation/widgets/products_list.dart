@@ -9,106 +9,71 @@ class ProductsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.only(bottom: 16),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.7,
+        childAspectRatio: 0.65, // Adjusted for better proportions
         crossAxisSpacing: 12,
-        mainAxisSpacing: 16,
+        mainAxisSpacing: 12,
       ),
       itemCount: products.length,
       itemBuilder: (context, index) {
         final product = products[index];
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: Offset(0, 2),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.withOpacity(0.2)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                flex: 3,
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Color(0xFFF8F8F8),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.shopping_bag_outlined,
-                      size: 60,
-                      color: Colors.grey[400],
-                    ),
-                  ),
+              // Product Image
+              Container(
+                height: 140,
+                decoration: BoxDecoration(
+                  color: Color(0xFFF8F8F8),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+                ),
+                child: Center(
+                  child: product.imageUrl.isNotEmpty
+                      ? Image.network(
+                          product.imageUrl,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                        )
+                      : _buildPlaceholder(),
                 ),
               ),
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.brand,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+              // Product Details
+              Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.brand.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        product.name,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      product.name,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        height: 1.2,
                       ),
-                      Spacer(),
-                      Row(
-                        children: [
-                          if (product.isOnSale && product.salePrice != null) ...[
-                            Text(
-                              '${product.salePrice!.toInt()} ₽',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red,
-                              ),
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '${product.price.toInt()} ₽',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                          ] else
-                            Text(
-                              '${product.price.toInt()} ₽',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 8),
+                    _buildPriceWidget(product),
+                  ],
                 ),
               ),
             ],
@@ -116,5 +81,48 @@ class ProductsList extends StatelessWidget {
         );
       },
     );
+  }
+
+  Widget _buildPlaceholder() {
+    return Icon(
+      Icons.shopping_bag_outlined,
+      size: 40,
+      color: Colors.grey[400],
+    );
+  }
+
+  Widget _buildPriceWidget(Product product) {
+    if (product.isOnSale && product.salePrice != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${product.salePrice!.toInt()} ₽',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ),
+          SizedBox(height: 2),
+          Text(
+            '${product.price.toInt()} ₽',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+              decoration: TextDecoration.lineThrough,
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Text(
+        '${product.price.toInt()} ₽',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    }
   }
 }

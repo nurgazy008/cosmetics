@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 
 class FilterPage extends StatefulWidget {
+  final String initialSkinType;
+  const FilterPage({required this.initialSkinType});
+
   @override
   _FilterPageState createState() => _FilterPageState();
 }
 
 class _FilterPageState extends State<FilterPage> {
-  String selectedSort = 'По популярности';
-  String selectedSkinType = 'Жирная';
-  String selectedProductType = 'Все';
-  String selectedSkinProblem = 'Не выбрано';
-  String selectedEffect = 'Увлажнение';
-  String selectedBrandLine = 'Все';
+  late String selectedSkinType;
+  late String selectedEffect;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedSkinType = widget.initialSkinType;
+    selectedEffect = 'Увлажнение';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,74 +46,15 @@ class _FilterPageState extends State<FilterPage> {
             child: ListView(
               padding: EdgeInsets.all(16),
               children: [
-                _buildFilterRow(
-                  'Сортировка',
-                  selectedSort,
-                  () => _selectOption('Сортировка', [
-                    'По популярности',
-                    'По цене',
-                    'По новизне',
-                    'По рейтингу',
-                  ], (v) => setState(() => selectedSort = v)),
-                ),
-                _buildFilterRow(
-                  'Тип кожи',
-                  selectedSkinType,
-                  () => _selectOption('Тип кожи', [
-                    'Жирная',
-                    'Комбинированная',
-                    'Нормальная',
-                    'Сухая',
-                    'Чувствительная',
-                  ], (v) => setState(() => selectedSkinType = v)),
-                ),
-                _buildFilterRow(
-                  'Тип средства',
-                  selectedProductType,
-                  () => _selectOption('Тип средства', [
-                    'Все',
-                    'Сыворотка',
-                    'Крем',
-                    'Тонер',
-                    'Маска',
-                    'Пенка',
-                  ], (v) => setState(() => selectedProductType = v)),
-                ),
-                _buildFilterRow(
-                  'Проблема кожи',
-                  selectedSkinProblem,
-                  () => _selectOption('Проблема кожи', [
-                    'Не выбрано',
-                    'Акне',
-                    'Пигментация',
-                    'Морщины',
-                    'Сухость',
-                  ], (v) => setState(() => selectedSkinProblem = v)),
-                ),
-                _buildFilterRow(
-                  'Эффект средства',
-                  selectedEffect,
-                  () => _selectOption('Эффект средства', [
-                    'Увлажнение',
-                    'Питание',
-                    'Очищение',
-                    'Омоложение',
-                  ], (v) => setState(() => selectedEffect = v)),
-                ),
-                _buildFilterRow(
-                  'Линия косметики',
-                  selectedBrandLine,
-                  () => _selectOption('Линия косметики', [
-                    'Все',
-                    'Premium',
-                    'Basic',
-                    'Professional',
-                  ], (v) => setState(() => selectedBrandLine = v)),
-                ),
+                _buildSectionHeader('Тип кожи'),
+                _buildSkinTypeOptions(),
+                SizedBox(height: 24),
+                _buildSectionHeader('Эффект средства'),
+                _buildEffectOptions(),
               ],
             ),
           ),
-          Container(
+          Padding(
             padding: EdgeInsets.all(16),
             child: SizedBox(
               width: double.infinity,
@@ -116,10 +63,6 @@ class _FilterPageState extends State<FilterPage> {
                   Navigator.pop(context, {
                     'effect': selectedEffect,
                     'skinType': selectedSkinType,
-                    'sort': selectedSort,
-                    'productType': selectedProductType,
-                    'skinProblem': selectedSkinProblem,
-                    'brandLine': selectedBrandLine,
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -145,43 +88,80 @@ class _FilterPageState extends State<FilterPage> {
     );
   }
 
-  Widget _buildFilterRow(String title, String value, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: TextStyle(fontSize: 16, color: Colors.black)),
-            Text(value, style: TextStyle(fontSize: 16, color: Colors.grey)),
-          ],
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
         ),
       ),
     );
   }
 
-  void _selectOption(
-    String title,
-    List<String> options,
-    Function(String) onSelected,
-  ) async {
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) {
-        return ListView(
-          children:
-              options
-                  .map(
-                    (option) => ListTile(
-                      title: Text(option),
-                      onTap: () => Navigator.pop(context, option),
-                    ),
-                  )
-                  .toList(),
+  Widget _buildSkinTypeOptions() {
+    final skinTypes = [
+      'Жирная',
+      'Комбинированная',
+      'Нормальная',
+      'Сухая',
+      'Чувствительная',
+    ];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: skinTypes.map((type) {
+        return ChoiceChip(
+          label: Text(type),
+          selected: selectedSkinType == type,
+          onSelected: (selected) {
+            setState(() {
+              selectedSkinType = type;
+            });
+          },
+          selectedColor: Colors.black,
+          backgroundColor: Color(0xFFF2F2F7),
+          labelStyle: TextStyle(
+            color: selectedSkinType == type ? Colors.white : Colors.black,
+          ),
         );
-      },
+      }).toList(),
     );
-    if (result != null) onSelected(result);
+  }
+
+  Widget _buildEffectOptions() {
+    final effects = [
+      'Увлажнение',
+      'Питание',
+      'Очищение',
+      'Омоложение',
+    ];
+
+    return Column(
+      children: effects.map((effect) {
+        return ListTile(
+          title: Text(effect),
+          leading: Radio<String>(
+            value: effect,
+            groupValue: selectedEffect,
+            onChanged: (value) {
+              setState(() {
+                selectedEffect = value!;
+              });
+            },
+            activeColor: Colors.black,
+          ),
+          onTap: () {
+            setState(() {
+              selectedEffect = effect;
+            });
+          },
+        );
+      }).toList(),
+    );
   }
 }

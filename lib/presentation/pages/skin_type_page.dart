@@ -32,8 +32,7 @@ class SkinTypePage extends StatelessWidget {
       backgroundColor: Colors.white,
       body: ListView.separated(
         itemCount: skinTypes.length,
-        separatorBuilder:
-            (_, __) => Divider(height: 0, color: Color(0xFFE5E5E5)),
+        separatorBuilder: (_, __) => Divider(height: 0, color: Color(0xFFE5E5E5)),
         itemBuilder: (context, index) {
           return ListTile(
             title: Text(

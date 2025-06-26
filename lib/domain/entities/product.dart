@@ -6,6 +6,7 @@ class Product {
   final String imageUrl;
   final String category;
   final List<String> skinTypes;
+  final String effect; // ✅ NEW
   final bool isOnSale;
   final double? salePrice;
 
@@ -17,6 +18,7 @@ class Product {
     required this.imageUrl,
     required this.category,
     required this.skinTypes,
+    required this.effect, // ✅ NEW
     this.isOnSale = false,
     this.salePrice,
   });

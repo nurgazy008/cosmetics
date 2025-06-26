@@ -3,11 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import '../bloc/products/products_bloc.dart';
-import '../widgets/products_list.dart';
 import '../pages/filter_page.dart';
+import '../widgets/products_list.dart';
 
 class ProductsBySkinTypeProductsPage extends StatelessWidget {
   final String skinType;
+
   const ProductsBySkinTypeProductsPage({required this.skinType});
 
   @override
@@ -27,46 +28,78 @@ class ProductsBySkinTypeProductsPage extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
-            'Средства для $skinType кожи',
+            'Средства\nдля $skinType кожи',
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
-              fontSize: 20,
+              fontSize: 22,
+              height: 1.2,
             ),
           ),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: Icon(Icons.tune, color: Colors.black),
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => FilterPage()),
-                );
-                if (result != null && result is Map<String, String>) {
-                  final effect = result['effect'] ?? '';
-                  final skinType = result['skinType'] ?? this.skinType;
-                  context.read<ProductsBloc>().add(FilterProductsByEffectEvent(effect, skinType));
-                }
-              },
-            ),
-          ],
+          centerTitle: false,
+          toolbarHeight: 80,
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 🟡 FILTER CHIPS + ICON ROW
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _FilterChip(label: 'Очищение', selected: true),
-                  SizedBox(width: 8),
-                  _FilterChip(label: 'Увлажнение'),
-                  SizedBox(width: 8),
-                  _FilterChip(label: 'Регенерация'),
+                  // ✅ Chips
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _FilterChip(label: 'Очищение'),
+                          SizedBox(width: 8),
+                          _FilterChip(label: 'Увлажнение', selected: true),
+                          SizedBox(width: 8),
+                          _FilterChip(label: 'Регенерация'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  // ✅ Фильтр иконка
+                  GestureDetector(
+                    onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => FilterPage(initialSkinType: skinType),
+                        ),
+                      );
+                      if (result is Map<String, String>) {
+                        context.read<ProductsBloc>().add(
+                          FilterProductsByEffectEvent(
+                            result['effect'] ?? '',
+                            result['skinType'] ?? skinType,
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.filter_list,
+                        size: 20,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
+            SizedBox(height: 12),
+            // 🟩 PRODUCTS LIST
             BlocBuilder<ProductsBloc, ProductsState>(
               builder: (context, state) {
                 if (state is ProductsLoading) {
@@ -74,25 +107,26 @@ class ProductsBySkinTypeProductsPage extends StatelessWidget {
                     child: Center(child: CircularProgressIndicator()),
                   );
                 } else if (state is ProductsLoaded) {
-                  final products = state.products;
                   return Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 4,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
-                            '${products.length} продуктов',
+                            '${state.products.length} продуктов',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
                             ),
                           ),
                         ),
-                        Expanded(child: ProductsList(products: products)),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: ProductsList(products: state.products),
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -112,22 +146,22 @@ class ProductsBySkinTypeProductsPage extends StatelessWidget {
 class _FilterChip extends StatelessWidget {
   final String label;
   final bool selected;
+
   const _FilterChip({required this.label, this.selected = false});
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: selected ? Colors.black : Color(0xFFF2F2F7),
-        borderRadius: BorderRadius.circular(20),
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) {},
+      backgroundColor: Color(0xFFF2F2F7),
+      selectedColor: Colors.black,
+      labelStyle: TextStyle(
+        color: selected ? Colors.white : Colors.black,
+        fontSize: 14,
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: selected ? Colors.white : Colors.black,
-          fontSize: 14,
-        ),
-      ),
+      shape: StadiumBorder(),
     );
   }
 }

@@ -7,9 +7,8 @@ abstract class ProductsLocalDataSource {
 class ProductsLocalDataSourceImpl implements ProductsLocalDataSource {
   @override
   Future<List<ProductModel>> getProducts() async {
-    // Имитация данных как в макете
     await Future.delayed(Duration(milliseconds: 500));
-    
+
     return [
       ProductModel(
         id: 1,
@@ -19,6 +18,7 @@ class ProductsLocalDataSourceImpl implements ProductsLocalDataSource {
         imageUrl: 'assets/images/cosrx_serum.png',
         category: 'Сыворотки',
         skinTypes: ['Жирная', 'Комбинированная'],
+        effect: 'Увлажнение', // ✅ ҚОСЫЛДЫ
       ),
       ProductModel(
         id: 2,
@@ -28,6 +28,7 @@ class ProductsLocalDataSourceImpl implements ProductsLocalDataSource {
         imageUrl: 'assets/images/laneige_toner.png',
         category: 'Тонеры',
         skinTypes: ['Сухая', 'Нормальная'],
+        effect: 'Омоложение', // ✅ ҚОСЫЛДЫ
       ),
       ProductModel(
         id: 3,
@@ -37,6 +38,7 @@ class ProductsLocalDataSourceImpl implements ProductsLocalDataSource {
         imageUrl: 'assets/images/hada_labo.png',
         category: 'Лосьоны',
         skinTypes: ['Сухая', 'Чувствительная'],
+        effect: 'Питание', // ✅ ҚОСЫЛДЫ
         isOnSale: true,
         salePrice: 1350,
       ),
