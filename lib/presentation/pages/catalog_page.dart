@@ -287,7 +287,7 @@ class ProductsByCategoryPage extends StatelessWidget {
   }
 }
 
-// filter_page.dart
+
 class FilterPage extends StatefulWidget {
   final String categoryType;
 

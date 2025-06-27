@@ -6,10 +6,25 @@ import '../bloc/products/products_bloc.dart';
 import '../pages/filter_page.dart';
 import '../widgets/products_list.dart';
 
-class ProductsBySkinTypeProductsPage extends StatelessWidget {
+class ProductsBySkinTypeProductsPage extends StatefulWidget {
   final String skinType;
 
   const ProductsBySkinTypeProductsPage({required this.skinType});
+
+  @override
+  _ProductsBySkinTypeProductsPageState createState() =>
+      _ProductsBySkinTypeProductsPageState();
+}
+
+class _ProductsBySkinTypeProductsPageState
+    extends State<ProductsBySkinTypeProductsPage> {
+  String selectedEffect = '';
+
+  final Map<String, String> effectMapping = {
+    'Очищение': 'Очищение',
+    'Увлажнение': 'Увлажнение',
+    'Регенерация': 'Омоложение',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +32,7 @@ class ProductsBySkinTypeProductsPage extends StatelessWidget {
       create:
           (_) =>
               GetIt.I<ProductsBloc>()
-                ..add(FilterProductsBySkinTypeEvent(skinType)),
+                ..add(FilterProductsBySkinTypeEvent(widget.skinType)),
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -28,7 +43,7 @@ class ProductsBySkinTypeProductsPage extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
-            'Средства\nдля $skinType кожи',
+            'Средства\nдля ${widget.skinType} кожи',
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
@@ -42,64 +57,44 @@ class ProductsBySkinTypeProductsPage extends StatelessWidget {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🟡 FILTER CHIPS + ICON ROW
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // ✅ Chips
                   Expanded(
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          _FilterChip(label: 'Очищение'),
+                          _FilterChip(
+                            label: 'Очищение',
+                            selected: selectedEffect == 'Очищение',
+                            onSelected: () => _onEffectSelected('Очищение'),
+                          ),
                           SizedBox(width: 8),
-                          _FilterChip(label: 'Увлажнение', selected: true),
+                          _FilterChip(
+                            label: 'Увлажнение',
+                            selected: selectedEffect == 'Увлажнение',
+                            onSelected: () => _onEffectSelected('Увлажнение'),
+                          ),
                           SizedBox(width: 8),
-                          _FilterChip(label: 'Регенерация'),
+                          _FilterChip(
+                            label: 'Регенерация',
+                            selected: selectedEffect == 'Омоложение',
+                            onSelected: () => _onEffectSelected('Омоложение'),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                  SizedBox(width: 12),
-                  // ✅ Фильтр иконка
-                  GestureDetector(
-                    onTap: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => FilterPage(initialSkinType: skinType),
-                        ),
-                      );
-                      if (result is Map<String, String>) {
-                        context.read<ProductsBloc>().add(
-                          FilterProductsByEffectEvent(
-                            result['effect'] ?? '',
-                            result['skinType'] ?? skinType,
-                          ),
-                        );
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.filter_list,
-                        size: 20,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
+                  SizedBox(),
+
+                  SizedBox(),
                 ],
               ),
             ),
-            SizedBox(height: 12),
-            // 🟩 PRODUCTS LIST
+
             BlocBuilder<ProductsBloc, ProductsState>(
               builder: (context, state) {
                 if (state is ProductsLoading) {
@@ -113,14 +108,66 @@ class ProductsBySkinTypeProductsPage extends StatelessWidget {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            '${state.products.length} продуктов',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${state.products.length} продуктов',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () async {
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) => FilterPage(
+                                            initialSkinType: widget.skinType,
+                                          ),
+                                    ),
+                                  );
+                                  if (result != null &&
+                                      result is Map<String, String>) {
+                                    final effect = result['effect'] ?? '';
+                                    final skinType =
+                                        result['skinType'] ?? widget.skinType;
+
+                                    setState(() {
+                                      selectedEffect = effect;
+                                    });
+
+                                    if (effect.isEmpty) {
+                                      context.read<ProductsBloc>().add(
+                                        FilterProductsBySkinTypeEvent(
+                                          _mapSkinTypeForBloc(skinType),
+                                        ),
+                                      );
+                                    } else {
+                                      context.read<ProductsBloc>().add(
+                                        FilterProductsByEffectEvent(
+                                          effect,
+                                          _mapSkinTypeForBloc(skinType),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(6),
+                                  child: Icon(
+                                    Icons.tune,
+                                    size: 18,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                        SizedBox(height: 16),
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -131,7 +178,26 @@ class ProductsBySkinTypeProductsPage extends StatelessWidget {
                     ),
                   );
                 } else if (state is ProductsError) {
-                  return Expanded(child: Center(child: Text(state.message)));
+                  return Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            state.message,
+                            style: TextStyle(color: Colors.grey[600]),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 }
                 return SizedBox.shrink();
               },
@@ -141,27 +207,75 @@ class ProductsBySkinTypeProductsPage extends StatelessWidget {
       ),
     );
   }
+
+  void _onEffectSelected(String effect) {
+    setState(() {
+      if (selectedEffect == effect) {
+        selectedEffect = '';
+        context.read<ProductsBloc>().add(
+          FilterProductsBySkinTypeEvent(_mapSkinTypeForBloc(widget.skinType)),
+        );
+      } else {
+        selectedEffect = effect;
+
+        context.read<ProductsBloc>().add(
+          FilterProductsByEffectEvent(
+            effect,
+            _mapSkinTypeForBloc(widget.skinType),
+          ),
+        );
+      }
+    });
+  }
+
+  String _mapSkinTypeForBloc(String skinType) {
+    switch (skinType) {
+      case 'Жирная':
+        return 'жирной';
+      case 'Комбинированная':
+        return 'комбинированной';
+      case 'Нормальная':
+        return 'нормальной';
+      case 'Сухая':
+        return 'сухой';
+      case 'Чувствительная':
+        return 'чувствительной';
+      default:
+        return skinType.toLowerCase();
+    }
+  }
 }
 
 class _FilterChip extends StatelessWidget {
   final String label;
   final bool selected;
+  final VoidCallback onSelected;
 
-  const _FilterChip({required this.label, this.selected = false});
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return FilterChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (_) {},
-      backgroundColor: Color(0xFFF2F2F7),
-      selectedColor: Colors.black,
-      labelStyle: TextStyle(
-        color: selected ? Colors.white : Colors.black,
-        fontSize: 14,
+    return GestureDetector(
+      onTap: onSelected,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? Colors.black : Color(0xFFF2F2F7),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : Colors.black,
+            fontSize: 14,
+            fontWeight: selected ? FontWeight.w500 : FontWeight.normal,
+          ),
+        ),
       ),
-      shape: StadiumBorder(),
     );
   }
 }
